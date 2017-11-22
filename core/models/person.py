@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import hashlib
+import re
 import time
 import binascii
 
@@ -11,6 +12,8 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+
+from core import HamkelaasyError, Error_code
 
 
 def hash_password(created_date, password):
@@ -43,6 +46,10 @@ class Person(models.Model):
 
     @staticmethod
     def create(username, password, phone_numbers, first_name=None, last_name=None, email=None):
+        if not Person.username_is_valid(username):
+            return False
+            # TODO : amend this part
+
         user = User(username=username)
         user.save()
         now = timezone.now()
@@ -71,6 +78,17 @@ class Person(models.Model):
 
     # def login(self, password):
     #     pass
+
+    @staticmethod
+    def username_is_valid(username):
+        if not re.match("^[A-Za-z0-9_-]*$", username):
+            return False
+        if len(username) < 5:
+            return False
+        if not username[0].isalpha():
+            return False
+
+        return True
 
     def __unicode__(self):
         return str(self.id) + " " + self.user.username + " " + self.first_name + " " + self.last_name
